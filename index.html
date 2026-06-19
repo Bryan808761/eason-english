@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Eason英语">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Eason 黄亦辰的英语闯关学习 App，iPad / iPhone 触屏版">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🚀</text></svg>">
+    <title>Eason 英语闯关 · C版（触屏版）🚀</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;  /* 去掉iOS点击灰框 */
+            -webkit-touch-callout: none;               /* 禁止长按弹菜单 */
+            -webkit-user-select: none;                 /* 禁止选中文字 */
+            user-select: none;
+        }
+
+        html, body {
+            touch-action: manipulation;  /* 禁止双击缩放，点击更跟手 */
+            -webkit-text-size-adjust: 100%;
+            overscroll-behavior: none;   /* 禁止橡皮筋回弹 */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            min-height: 600px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 首页样式 */
+        .home-page {
+            text-align: center;
+        }
+
+        .home-title {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .home-subtitle {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .safari-tip {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            margin: 0 auto 30px;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .safari-tip-icon {
+            font-size: 2.5em;
+            margin-right: 15px;
+        }
+
+        .safari-tip-text {
+            flex: 1;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .safari-tip-text small {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .install-tip {
+            margin-top: 50px;
+            padding: 25px;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-radius: 20px;
+            text-align: left;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 8px 20px rgba(253, 203, 110, 0.3);
+        }
+
+        .install-tip-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .install-tip-step {
+            font-size: 1.05em;
+            color: #2d3436;
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .share-icon {
+            display: inline-block;
+            font-size: 1.2em;
+        }
+
+        /* 已添加到主屏（独立运行）后，隐藏安装提示 */
+        @media (display-mode: standalone) {
+            .install-tip {
+                display: none;
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 24px 60px;
+            font-size: 1.8em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.15s;
+            min-height: 70px;
+            min-width: 200px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.6);
+        }
+
+        /* 关卡地图样式 */
+        .map-title {
+            font-size: 2em;
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .theme-header {
+            grid-column: 1 / -1;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-left: 5px;
+        }
+
+        .theme-header:first-child {
+            margin-top: 0;
+        }
+
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .level-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 20px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            border: 4px solid transparent;
+            min-height: 120px;
+        }
+
+        .level-card:active {
+            transform: scale(0.93);
+            border-color: #667eea;
+        }
+
+        .level-card.locked {
+            background: #e0e0e0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .level-card.locked:active {
+            transform: none;
+            border-color: transparent;
+        }
+
+        .level-card.completed {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .level-emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .level-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .level-stars {
+            font-size: 1.2em;
+            margin-top: 8px;
+            min-height: 1.2em;
+        }
+
+        .level-lock {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+        }
+
+        /* 顶部栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .btn-back {
+            background: #f0f0f0;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-height: 50px;
+        }
+
+        .btn-back:active {
+            background: #e0e0e0;
+            transform: scale(0.94);
+        }
+
+        .progress-text {
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* 学习卡片 */
+        .learn-card {
+            text-align: center;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            border-radius: 24px;
+            padding: 30px;
+        }
+
+        .learn-image {
+            font-size: 7em;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .learn-image:active {
+            transform: scale(1.2);
+        }
+
+        .learn-image img {
+            max-height: 180px;
+            max-width: 100%;
+            border-radius: 16px;
+        }
+
+        .learn-word {
+            font-size: 3em;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .spell-row {
+            margin: 15px 0;
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 4px;
+        }
+
+        .spell-letter {
+            display: inline-block;
+            transition: all 0.2s;
+            opacity: 0.4;
+        }
+
+        .spell-letter.on {
+            opacity: 1;
+            color: #ff6b6b;
+            transform: scale(1.3);
+        }
+
+        .spell-dash {
+            opacity: 0.3;
+            margin: 0 2px;
+        }
+
+        .read-status {
+            font-size: 1.1em;
+            color: #888;
+            margin: 15px 0;
+            min-height: 1.5em;
+        }
+
+
+        .learn-phonetic {
+            font-size: 1.3em;
+            color: #999;
+            margin: 5px 0;
+        }
+
+        .learn-chinese {
+            font-size: 1.8em;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .btn-sound {
+            background: #ffd93d;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 36px;
+            font-size: 1.4em;
+            cursor: pointer;
+            margin: 15px 0;
+            transition: all 0.15s;
+            min-height: 60px;
+        }
+
+        .btn-sound:active {
+            background: #ffd000;
+            transform: scale(0.94);
+        }
+
+        .learn-example {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        .learn-example-en {
+            color: #333;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .learn-example-cn {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            gap: 15px;
+        }
+
+        .btn-nav {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 1.4em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-height: 70px;
+        }
+
+        .btn-nav:active {
+            transform: scale(0.95);
+        }
+
+        .btn-nav:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 测试页 */
+        .quiz-question {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .quiz-prompt {
+            font-size: 1.3em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .quiz-image {
+            font-size: 6em;
+            cursor: pointer;
+        }
+
+        .quiz-image img {
+            max-height: 160px;
+            border-radius: 16px;
+        }
+
+        .quiz-chinese {
+            font-size: 2.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .quiz-option {
+            background: white;
+            border: 4px solid #ddd;
+            border-radius: 20px;
+            padding: 28px;
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-option:active {
+            border-color: #667eea;
+            background: #f5f7ff;
+            transform: scale(0.95);
+        }
+
+        .quiz-option.correct {
+            background: #c8f7c5;
+            border-color: #4caf50;
+        }
+
+        .quiz-option.wrong {
+            background: #ffcdd2;
+            border-color: #f44336;
+        }
+
+        .quiz-option.disabled {
+            pointer-events: none;
+        }
+
+        .quiz-progress {
+            text-align: center;
+            font-size: 1.1em;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        /* 结算页 */
+        .result-page {
+            text-align: center;
+        }
+
+        .result-emoji {
+            font-size: 6em;
+            animation: bounce 0.6s;
+        }
+
+        .result-title {
+            font-size: 2.5em;
+            color: #667eea;
+            margin: 15px 0;
+        }
+
+        .result-score {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 撒花动画 */
+        .confetti {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            top: -20px;
+            z-index: 1000;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(105vh) rotate(720deg);
+            }
+        }
+
+        .feedback-toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.5em;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feedback-toast.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0;  /* 小屏去掉外边距，铺满 */
+            }
+            .container {
+                border-radius: 0;  /* 小屏不要圆角 */
+                /* 适配 iPhone 刘海屏和底部横条安全区 */
+                padding: calc(20px + env(safe-area-inset-top)) 15px calc(20px + env(safe-area-inset-bottom));
+                min-height: 100vh;  /* 铺满整屏 */
+                box-shadow: none;
+            }
+            .level-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .home-title {
+                font-size: 1.8em;
+            }
+            .home-subtitle {
+                font-size: 1em;
+            }
+            .learn-word {
+                font-size: 2em;
+            }
+            .spell-row {
+                font-size: 1.5em;
+            }
+            .quiz-option {
+                font-size: 1.3em;
+                padding: 18px;
+                min-height: 70px;
+            }
+            .btn-primary {
+                font-size: 1.4em;
+                padding: 18px 40px;
+                min-height: 60px;
+            }
+        }
+
+        /* iPhone 小屏专用（SE/8/12/13 等） */
+        @media (max-width: 480px) {
+            .home-title {
+                font-size: 1.6em;
+            }
+            .map-title {
+                font-size: 1.5em;
+            }
+            .level-card {
+                padding: 18px 10px;
+                min-height: 100px;
+            }
+            .level-emoji {
+                font-size: 2.5em;
+            }
+            .level-name {
+                font-size: 0.95em;
+            }
+            .btn-primary {
+                font-size: 1.3em;
+                padding: 16px 35px;
+            }
+            .learn-image {
+                font-size: 5em;
+            }
+            .learn-word {
+                font-size: 1.8em;
+            }
+            .spell-row {
+                font-size: 1.3em;
+            }
+            .quiz-chinese {
+                font-size: 2em;
+            }
+            .quiz-option {
+                font-size: 1.2em;
+                padding: 16px;
+                min-height: 65px;
+            }
+        }
+
+        /* iPad 横屏优化 */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .container {
+                max-width: 1100px;
+                padding: 50px;
+            }
+            .level-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .quiz-options {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+
+        /* iPad 竖屏优化 */
+        @media (min-width: 768px) and (orientation: portrait) {
+            .container {
+                max-width: 750px;
+            }
+            .level-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 首页 -->
+        <div class="page active" id="homePage">
+            <!-- Safari 提示横幅（非 Safari 环境时显示）-->
+            <div class="safari-tip" id="safariTip" style="display:none;">
+                <div class="safari-tip-icon">⚠️</div>
+                <div class="safari-tip-text">
+                    <b>需要 Safari 浏览器</b><br>
+                    <small>在「文件」App 中：长按此文件 → 共享 → Safari</small>
+                </div>
+            </div>
+
+            <div class="home-page">
+                <h1 class="home-title">🚀 Eason 的英语闯关 · C版 🚀</h1>
+                <p class="home-subtitle">黄亦辰小朋友，iPad / iPhone 触屏版！💪</p>
+                <button class="btn-primary" onclick="app.showMap()">开始闯关</button>
+                <div class="install-tip" id="installTip">
+                    <div class="install-tip-title">📲 装到主屏幕，完全离线可用</div>
+                    <div class="install-tip-step"><b>传输文件后打开方式：</b></div>
+                    <div class="install-tip-step">• 在「文件」App 里<b>长按</b>文件</div>
+                    <div class="install-tip-step">• 选择<b>「共享」→「Safari」</b></div>
+                    <div class="install-tip-step">• 或者：<b>直接点击</b>文件（部分 iOS 版本）</div>
+                    <div class="install-tip-step"><br><b>然后添加到主屏：</b></div>
+                    <div class="install-tip-step">1️⃣ 点底部 <b>分享</b> 按钮 <span class="share-icon">⬆️</span></div>
+                    <div class="install-tip-step">2️⃣ 选择 <b>「添加到主屏幕」</b></div>
+                    <div class="install-tip-step">3️⃣ 桌面出现 🚀 图标，<b>无需网络，随时可用</b></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关卡地图 -->
+        <div class="page" id="mapPage">
+            <h2 class="map-title">🗺️ 选择关卡</h2>
+            <div class="level-grid" id="levelGrid"></div>
+        </div>
+
+        <!-- 学习页 -->
+        <div class="page" id="learnPage">
+            <div class="top-bar">
+                <button class="btn-back" onclick="app.showMap()">← 返回</button>
+                <div class="progress-text" id="learnProgress"></div>
+            </div>
+            <div class="learn-card" id="learnCard"></div>
+            <div class="nav-buttons">
+                <button class="btn-nav" id="btnPrev" style="display:none">上一个</button>
+                <button class="btn-nav" id="btnNext" style="display:none">下一个</button>
+                <button class="btn-nav" id="btnStartQuiz" onclick="app.startQuiz()" style="display:none">开始测试</button>
+            </div>
+        </div>
+
+        <!-- 测试页 -->
+        <div class="page" id="quizPage">
+            <div class="top-bar">
+                <button class="btn-back" onclick="app.showMap()">← 返回</button>
+                <div class="progress-text" id="quizProgress"></div>
+            </div>
+            <div class="quiz-progress" id="quizStatus"></div>
+            <div class="quiz-question" id="quizQuestion"></div>
+            <div class="quiz-options" id="quizOptions"></div>
+        </div>
+
+        <!-- 结算页 -->
+        <div class="page" id="resultPage">
+            <div class="result-page">
+                <div class="result-emoji" id="resultEmoji"></div>
+                <h2 class="result-title" id="resultTitle"></h2>
+                <p class="result-score" id="resultScore"></p>
+                <div class="result-buttons">
+                    <button class="btn-primary" id="resultBtn1"></button>
+                    <button class="btn-primary" id="resultBtn2"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feedback-toast" id="feedbackToast"></div>
+
+    <script>
+    // ====== Safari 检测与引导 ======
+    (function detectBrowser() {
+        const ua = navigator.userAgent;
+        const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        // 非 Safari 的 iOS 浏览器（如「文件」App 内置预览、Chrome、微信等）
+        const isRealSafari = isIOS && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|Line|MicroMessenger|QQ/.test(ua);
+        // 「文件」App 预览模式通常 UA 里没有完整 Safari 标识，或运行受限
+        window.__isIOS = isIOS;
+        window.__maybeRestricted = isIOS && !isRealSafari;
+
+        // 如果不是真正的 Safari，显示提示
+        if (window.__maybeRestricted) {
+            window.addEventListener('DOMContentLoaded', function() {
+                const tip = document.getElementById('safariTip');
+                if (tip) tip.style.display = 'flex';
+            });
+        }
+    })();
+
+    // ====== 词库数据 ======
+    // 每个单词: word英文, phonetic音标提示, cn中文, emoji图示(image可换真实图路径), exEn例句英文, exCn例句中文
+    const LEVELS = [
+        {
+            id: 'alphabet',
+            name: '字母 ABC',
+            emoji: '🔤',
+            words: [
+                { word: 'A', phonetic: '/eɪ/', cn: 'A - Apple 苹果', emoji: '🍎', exEn: 'A is for Apple.', exCn: 'A 代表苹果。' },
+                { word: 'B', phonetic: '/biː/', cn: 'B - Ball 球', emoji: '⚽', exEn: 'B is for Ball.', exCn: 'B 代表球。' },
+                { word: 'C', phonetic: '/siː/', cn: 'C - Cat 猫', emoji: '🐱', exEn: 'C is for Cat.', exCn: 'C 代表猫。' },
+                { word: 'D', phonetic: '/diː/', cn: 'D - Dog 狗', emoji: '🐶', exEn: 'D is for Dog.', exCn: 'D 代表狗。' },
+                { word: 'E', phonetic: '/iː/', cn: 'E - Egg 蛋', emoji: '🥚', exEn: 'E is for Egg.', exCn: 'E 代表蛋。' },
+                { word: 'F', phonetic: '/ef/', cn: 'F - Fish 鱼', emoji: '🐟', exEn: 'F is for Fish.', exCn: 'F 代表鱼。' },
+                { word: 'G', phonetic: '/dʒiː/', cn: 'G - Grape 葡萄', emoji: '🍇', exEn: 'G is for Grape.', exCn: 'G 代表葡萄。' },
+                { word: 'H', phonetic: '/eɪtʃ/', cn: 'H - Hat 帽子', emoji: '🎩', exEn: 'H is for Hat.', exCn: 'H 代表帽子。' },
+                { word: 'I', phonetic: '/aɪ/', cn: 'I - Ice 冰', emoji: '🧊', exEn: 'I is for Ice.', exCn: 'I 代表冰。' },
+                { word: 'J', phonetic: '/dʒeɪ/', cn: 'J - Juice 果汁', emoji: '🧃', exEn: 'J is for Juice.', exCn: 'J 代表果汁。' },
+            ]
+        },
+        {
+            id: 'alphabet2',
+            name: '字母 K-T',
+            emoji: '🔡',
+            words: [
+                { word: 'K', phonetic: '/keɪ/', cn: 'K - Key 钥匙', emoji: '🔑', exEn: 'K is for Key.', exCn: 'K 代表钥匙。' },
+                { word: 'L', phonetic: '/el/', cn: 'L - Lion 狮子', emoji: '🦁', exEn: 'L is for Lion.', exCn: 'L 代表狮子。' },
+                { word: 'M', phonetic: '/em/', cn: 'M - Moon 月亮', emoji: '🌙', exEn: 'M is for Moon.', exCn: 'M 代表月亮。' },
+                { word: 'N', phonetic: '/en/', cn: 'N - Nose 鼻子', emoji: '👃', exEn: 'N is for Nose.', exCn: 'N 代表鼻子。' },
+                { word: 'O', phonetic: '/oʊ/', cn: 'O - Orange 橙子', emoji: '🍊', exEn: 'O is for Orange.', exCn: 'O 代表橙子。' },
+                { word: 'P', phonetic: '/piː/', cn: 'P - Pig 猪', emoji: '🐷', exEn: 'P is for Pig.', exCn: 'P 代表猪。' },
+                { word: 'Q', phonetic: '/kjuː/', cn: 'Q - Queen 女王', emoji: '👑', exEn: 'Q is for Queen.', exCn: 'Q 代表女王。' },
+                { word: 'R', phonetic: '/ɑːr/', cn: 'R - Rabbit 兔子', emoji: '🐰', exEn: 'R is for Rabbit.', exCn: 'R 代表兔子。' },
+                { word: 'S', phonetic: '/es/', cn: 'S - Sun 太阳', emoji: '☀️', exEn: 'S is for Sun.', exCn: 'S 代表太阳。' },
+                { word: 'T', phonetic: '/tiː/', cn: 'T - Tiger 老虎', emoji: '🐯', exEn: 'T is for Tiger.', exCn: 'T 代表老虎。' },
+            ]
+        },
+        {
+            id: 'alphabet3',
+            name: '字母 U-Z',
+            emoji: '🆎',
+            words: [
+                { word: 'U', phonetic: '/juː/', cn: 'U - Umbrella 雨伞', emoji: '☂️', exEn: 'U is for Umbrella.', exCn: 'U 代表雨伞。' },
+                { word: 'V', phonetic: '/viː/', cn: 'V - Van 货车', emoji: '🚐', exEn: 'V is for Van.', exCn: 'V 代表货车。' },
+                { word: 'W', phonetic: '/ˈdʌbljuː/', cn: 'W - Water 水', emoji: '💧', exEn: 'W is for Water.', exCn: 'W 代表水。' },
+                { word: 'X', phonetic: '/eks/', cn: 'X - Box 盒子', emoji: '📦', exEn: 'X is in Box.', exCn: 'X 在 Box 里。' },
+                { word: 'Y', phonetic: '/waɪ/', cn: 'Y - Yo-yo 溜溜球', emoji: '🪀', exEn: 'Y is for Yo-yo.', exCn: 'Y 代表溜溜球。' },
+                { word: 'Z', phonetic: '/ziː/', cn: 'Z - Zebra 斑马', emoji: '🦓', exEn: 'Z is for Zebra.', exCn: 'Z 代表斑马。' },
+            ]
+        },
+        {
+            id: 'transport',
+            name: '交通工具',
+            emoji: '🚗',
+            words: [
+                { word: 'car', phonetic: '/kɑːr/', cn: '汽车', emoji: '🚗', exEn: 'I have a red car.', exCn: '我有一辆红色的汽车。' },
+                { word: 'bus', phonetic: '/bʌs/', cn: '公交车', emoji: '🚌', exEn: 'The bus is big.', exCn: '公交车很大。' },
+                { word: 'bike', phonetic: '/baɪk/', cn: '自行车', emoji: '🚲', exEn: 'I ride my bike.', exCn: '我骑我的自行车。' },
+                { word: 'plane', phonetic: '/pleɪn/', cn: '飞机', emoji: '✈️', exEn: 'The plane flies high.', exCn: '飞机飞得很高。' },
+                { word: 'train', phonetic: '/treɪn/', cn: '火车', emoji: '🚂', exEn: 'The train is fast.', exCn: '火车很快。' },
+                { word: 'ship', phonetic: '/ʃɪp/', cn: '轮船', emoji: '🚢', exEn: 'The ship is on the sea.', exCn: '轮船在海上。' },
+                { word: 'taxi', phonetic: '/ˈtæksi/', cn: '出租车', emoji: '🚕', exEn: 'Call a taxi please.', exCn: '请叫一辆出租车。' },
+                { word: 'truck', phonetic: '/trʌk/', cn: '卡车', emoji: '🚚', exEn: 'The truck is strong.', exCn: '卡车很强壮。' },
+                { word: 'rocket', phonetic: '/ˈrɑːkɪt/', cn: '火箭', emoji: '🚀', exEn: 'The rocket goes to space.', exCn: '火箭飞向太空。' },
+                { word: 'boat', phonetic: '/boʊt/', cn: '小船', emoji: '⛵', exEn: 'The boat is on the river.', exCn: '小船在河上。' },
+            ]
+        },
+        {
+            id: 'animals',
+            name: '动物',
+            emoji: '🐶',
+            words: [
+                { word: 'dog', phonetic: '/dɔːɡ/', cn: '狗', emoji: '🐕', exEn: 'My dog is cute.', exCn: '我的狗很可爱。' },
+                { word: 'cat', phonetic: '/kæt/', cn: '猫', emoji: '🐈', exEn: 'The cat likes milk.', exCn: '猫喜欢牛奶。' },
+                { word: 'bird', phonetic: '/bɜːrd/', cn: '鸟', emoji: '🐦', exEn: 'The bird can sing.', exCn: '鸟会唱歌。' },
+                { word: 'fish', phonetic: '/fɪʃ/', cn: '鱼', emoji: '🐠', exEn: 'Fish swim in water.', exCn: '鱼在水里游。' },
+                { word: 'monkey', phonetic: '/ˈmʌŋki/', cn: '猴子', emoji: '🐵', exEn: 'The monkey is funny.', exCn: '猴子很搞笑。' },
+                { word: 'lion', phonetic: '/ˈlaɪən/', cn: '狮子', emoji: '🦁', exEn: 'The lion is strong.', exCn: '狮子很强壮。' },
+                { word: 'elephant', phonetic: '/ˈelɪfənt/', cn: '大象', emoji: '🐘', exEn: 'The elephant is big.', exCn: '大象很大。' },
+                { word: 'panda', phonetic: '/ˈpændə/', cn: '熊猫', emoji: '🐼', exEn: 'I love pandas.', exCn: '我喜欢熊猫。' },
+                { word: 'bear', phonetic: '/ber/', cn: '熊', emoji: '🐻', exEn: 'The bear is sleeping.', exCn: '熊在睡觉。' },
+                { word: 'tiger', phonetic: '/ˈtaɪɡər/', cn: '老虎', emoji: '🐯', exEn: 'The tiger is fast.', exCn: '老虎很快。' },
+            ]
+        },
+        {
+            id: 'food',
+            name: '食物',
+            emoji: '🍎',
+            words: [
+                { word: 'apple', phonetic: '/ˈæpl/', cn: '苹果', emoji: '🍎', exEn: 'I eat an apple.', exCn: '我吃一个苹果。' },
+                { word: 'banana', phonetic: '/bəˈnænə/', cn: '香蕉', emoji: '🍌', exEn: 'The banana is yellow.', exCn: '香蕉是黄色的。' },
+                { word: 'cake', phonetic: '/keɪk/', cn: '蛋糕', emoji: '🍰', exEn: 'Happy birthday! Here is a cake.', exCn: '生日快乐！这是蛋糕。' },
+                { word: 'bread', phonetic: '/bred/', cn: '面包', emoji: '🍞', exEn: 'I have bread for breakfast.', exCn: '我早餐吃面包。' },
+                { word: 'milk', phonetic: '/mɪlk/', cn: '牛奶', emoji: '🥛', exEn: 'Milk is good for you.', exCn: '牛奶对你有好处。' },
+                { word: 'egg', phonetic: '/eɡ/', cn: '鸡蛋', emoji: '🥚', exEn: 'I like eggs.', exCn: '我喜欢鸡蛋。' },
+                { word: 'rice', phonetic: '/raɪs/', cn: '米饭', emoji: '🍚', exEn: 'We eat rice every day.', exCn: '我们每天吃米饭。' },
+                { word: 'water', phonetic: '/ˈwɔːtər/', cn: '水', emoji: '💧', exEn: 'Drink more water.', exCn: '多喝水。' },
+                { word: 'juice', phonetic: '/dʒuːs/', cn: '果汁', emoji: '🧃', exEn: 'I want orange juice.', exCn: '我想要橙汁。' },
+                { word: 'pizza', phonetic: '/ˈpiːtsə/', cn: '披萨', emoji: '🍕', exEn: 'Pizza is delicious.', exCn: '披萨很好吃。' },
+            ]
+        },
+        {
+            id: 'colors',
+            name: '颜色',
+            emoji: '🌈',
+            words: [
+                { word: 'red', phonetic: '/red/', cn: '红色', emoji: '🔴', exEn: 'I like red.', exCn: '我喜欢红色。' },
+                { word: 'blue', phonetic: '/bluː/', cn: '蓝色', emoji: '🔵', exEn: 'The sky is blue.', exCn: '天空是蓝色的。' },
+                { word: 'green', phonetic: '/ɡriːn/', cn: '绿色', emoji: '🟢', exEn: 'The grass is green.', exCn: '草是绿色的。' },
+                { word: 'yellow', phonetic: '/ˈjeloʊ/', cn: '黄色', emoji: '🟡', exEn: 'The sun is yellow.', exCn: '太阳是黄色的。' },
+                { word: 'black', phonetic: '/blæk/', cn: '黑色', emoji: '⚫', exEn: 'My shoes are black.', exCn: '我的鞋子是黑色的。' },
+                { word: 'white', phonetic: '/waɪt/', cn: '白色', emoji: '⚪', exEn: 'Snow is white.', exCn: '雪是白色的。' },
+                { word: 'pink', phonetic: '/pɪŋk/', cn: '粉色', emoji: '🩷', exEn: 'I have a pink dress.', exCn: '我有一条粉色裙子。' },
+                { word: 'orange', phonetic: '/ˈɔːrɪndʒ/', cn: '橙色', emoji: '🟠', exEn: 'Orange is a nice color.', exCn: '橙色是好看的颜色。' },
+                { word: 'purple', phonetic: '/ˈpɜːrpl/', cn: '紫色', emoji: '🟣', exEn: 'I see a purple flower.', exCn: '我看见一朵紫色的花。' },
+                { word: 'brown', phonetic: '/braʊn/', cn: '棕色', emoji: '🟤', exEn: 'The bear is brown.', exCn: '熊是棕色的。' },
+            ]
+        },
+        {
+            id: 'numbers',
+            name: '数字',
+            emoji: '1️⃣',
+            words: [
+                { word: 'one', phonetic: '/wʌn/', cn: '一', emoji: '1️⃣', exEn: 'I have one apple.', exCn: '我有一个苹果。' },
+                { word: 'two', phonetic: '/tuː/', cn: '二', emoji: '2️⃣', exEn: 'I see two cats.', exCn: '我看见两只猫。' },
+                { word: 'three', phonetic: '/θriː/', cn: '三', emoji: '3️⃣', exEn: 'Three birds are singing.', exCn: '三只鸟在唱歌。' },
+                { word: 'four', phonetic: '/fɔːr/', cn: '四', emoji: '4️⃣', exEn: 'I am four years old.', exCn: '我四岁了。' },
+                { word: 'five', phonetic: '/faɪv/', cn: '五', emoji: '5️⃣', exEn: 'Give me five!', exCn: '击掌！' },
+                { word: 'six', phonetic: '/sɪks/', cn: '六', emoji: '6️⃣', exEn: 'I have six pencils.', exCn: '我有六支铅笔。' },
+                { word: 'seven', phonetic: '/ˈsevn/', cn: '七', emoji: '7️⃣', exEn: 'Seven days in a week.', exCn: '一周有七天。' },
+                { word: 'eight', phonetic: '/eɪt/', cn: '八', emoji: '8️⃣', exEn: 'I go to bed at eight.', exCn: '我八点睡觉。' },
+                { word: 'nine', phonetic: '/naɪn/', cn: '九', emoji: '9️⃣', exEn: 'Nine is a big number.', exCn: '九是个大数字。' },
+                { word: 'ten', phonetic: '/ten/', cn: '十', emoji: '🔟', exEn: 'I can count to ten.', exCn: '我能数到十。' },
+            ]
+        },
+        {
+            id: 'family',
+            name: '家庭',
+            emoji: '👪',
+            words: [
+                { word: 'mom', phonetic: '/mɑːm/', cn: '妈妈', emoji: '👩', exEn: 'I love my mom.', exCn: '我爱我的妈妈。' },
+                { word: 'dad', phonetic: '/dæd/', cn: '爸爸', emoji: '👨', exEn: 'Dad is tall.', exCn: '爸爸很高。' },
+                { word: 'sister', phonetic: '/ˈsɪstər/', cn: '姐姐/妹妹', emoji: '👧', exEn: 'My sister is nice.', exCn: '我的姐姐很好。' },
+                { word: 'brother', phonetic: '/ˈbrʌðər/', cn: '哥哥/弟弟', emoji: '👦', exEn: 'My brother likes cars.', exCn: '我哥哥喜欢车。' },
+                { word: 'baby', phonetic: '/ˈbeɪbi/', cn: '婴儿', emoji: '👶', exEn: 'The baby is sleeping.', exCn: '婴儿在睡觉。' },
+                { word: 'grandpa', phonetic: '/ˈɡrænpɑː/', cn: '爷爷/外公', emoji: '👴', exEn: 'Grandpa tells me stories.', exCn: '爷爷给我讲故事。' },
+                { word: 'grandma', phonetic: '/ˈɡrænmɑː/', cn: '奶奶/外婆', emoji: '👵', exEn: 'Grandma makes cookies.', exCn: '奶奶做饼干。' },
+                { word: 'family', phonetic: '/ˈfæməli/', cn: '家庭', emoji: '👨‍👩‍👧‍👦', exEn: 'I love my family.', exCn: '我爱我的家人。' },
+                { word: 'friend', phonetic: '/frend/', cn: '朋友', emoji: '👫', exEn: 'He is my friend.', exCn: '他是我的朋友。' },
+                { word: 'teacher', phonetic: '/ˈtiːtʃər/', cn: '老师', emoji: '👩‍🏫', exEn: 'My teacher is kind.', exCn: '我的老师很亲切。' },
+            ]
+        },
+        {
+            id: 'body',
+            name: '身体',
+            emoji: '✋',
+            words: [
+                { word: 'head', phonetic: '/hed/', cn: '头', emoji: '🤕', exEn: 'Touch your head.', exCn: '摸你的头。' },
+                { word: 'eye', phonetic: '/aɪ/', cn: '眼睛', emoji: '👁️', exEn: 'I have two eyes.', exCn: '我有两只眼睛。' },
+                { word: 'ear', phonetic: '/ɪr/', cn: '耳朵', emoji: '👂', exEn: 'I can hear with my ears.', exCn: '我用耳朵听。' },
+                { word: 'nose', phonetic: '/noʊz/', cn: '鼻子', emoji: '👃', exEn: 'My nose can smell.', exCn: '我的鼻子能闻。' },
+                { word: 'mouth', phonetic: '/maʊθ/', cn: '嘴巴', emoji: '👄', exEn: 'Open your mouth.', exCn: '张开你的嘴。' },
+                { word: 'hand', phonetic: '/hænd/', cn: '手', emoji: '✋', exEn: 'Wash your hands.', exCn: '洗你的手。' },
+                { word: 'foot', phonetic: '/fʊt/', cn: '脚', emoji: '🦶', exEn: 'My foot hurts.', exCn: '我的脚疼。' },
+                { word: 'arm', phonetic: '/ɑːrm/', cn: '手臂', emoji: '💪', exEn: 'My arms are strong.', exCn: '我的手臂很强壮。' },
+                { word: 'leg', phonetic: '/leɡ/', cn: '腿', emoji: '🦵', exEn: 'I have two legs.', exCn: '我有两条腿。' },
+                { word: 'hair', phonetic: '/her/', cn: '头发', emoji: '💇', exEn: 'My hair is black.', exCn: '我的头发是黑色的。' },
+            ]
+        },
+        {
+            id: 'toys',
+            name: '运动玩具',
+            emoji: '⚽',
+            words: [
+                { word: 'ball', phonetic: '/bɔːl/', cn: '球', emoji: '⚽', exEn: 'Let us play ball!', exCn: '我们来玩球吧！' },
+                { word: 'toy', phonetic: '/tɔɪ/', cn: '玩具', emoji: '🧸', exEn: 'I have many toys.', exCn: '我有很多玩具。' },
+                { word: 'robot', phonetic: '/ˈroʊbɑːt/', cn: '机器人', emoji: '🤖', exEn: 'My robot can walk.', exCn: '我的机器人会走路。' },
+                { word: 'kite', phonetic: '/kaɪt/', cn: '风筝', emoji: '🪁', exEn: 'I fly a kite.', exCn: '我放风筝。' },
+                { word: 'football', phonetic: '/ˈfʊtbɔːl/', cn: '足球', emoji: '⚽', exEn: 'He plays football.', exCn: '他踢足球。' },
+                { word: 'basketball', phonetic: '/ˈbæskɪtbɔːl/', cn: '篮球', emoji: '🏀', exEn: 'I like basketball.', exCn: '我喜欢篮球。' },
+                { word: 'swim', phonetic: '/swɪm/', cn: '游泳', emoji: '🏊', exEn: 'I can swim.', exCn: '我会游泳。' },
+                { word: 'run', phonetic: '/rʌn/', cn: '跑步', emoji: '🏃', exEn: 'I run very fast.', exCn: '我跑得很快。' },
+                { word: 'jump', phonetic: '/dʒʌmp/', cn: '跳', emoji: '🤸', exEn: 'Jump high!', exCn: '跳高！' },
+                { word: 'play', phonetic: '/pleɪ/', cn: '玩', emoji: '🎮', exEn: 'Let us play together.', exCn: '我们一起玩吧。' },
+            ]
+        },
+    ];
+
+    // ====== 发音 ======
+    let speakToken = 0; // 用于打断上一段朗读序列
+
+    function stopSpeak() {
+        speakToken++;
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function speak(text, lang) {
+        stopSpeak();
+        if (!('speechSynthesis' in window)) return;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = lang || 'en-US';
+        u.rate = 0.8;
+        window.speechSynthesis.speak(u);
+    }
+
+    // 依次朗读 items（每项 {text,type} 或纯字符串），可被 stopSpeak() 打断
+    // onProgress(index, item) 在每句开始前回调，用于界面高亮
+    function speakSequence(items, onProgress) {
+        stopSpeak();
+        if (!('speechSynthesis' in window)) return;
+        const myToken = speakToken;
+        let i = 0;
+        function next() {
+            if (myToken !== speakToken) return;   // 已被新的朗读取代，停止
+            if (i >= items.length) { if (onProgress) onProgress(-1, null); return; }
+            const item = items[i];
+            const obj = typeof item === 'string' ? { text: item, type: 'word' } : item;
+            if (onProgress) onProgress(i, obj);
+            i++;
+            const u = new SpeechSynthesisUtterance(obj.text);
+            u.lang = 'en-US';
+            // 字母拼读慢一点更清晰；例句正常
+            u.rate = obj.type === 'letter' ? 0.7 : (obj.type === 'ex' ? 0.85 : 0.8);
+            // 句间停顿：字母间短，整词后中等，例句后长
+            const gap = obj.type === 'letter' ? 250 : (obj.type === 'word' ? 500 : 700);
+            u.onend = function () {
+                if (myToken !== speakToken) return;
+                setTimeout(next, gap);
+            };
+            window.speechSynthesis.speak(u);
+        }
+        next();
+    }
+
+
+
+    // ====== 进度存档 ======
+    const SAVE_KEY = 'englishGameProgress_C';
+    function loadProgress() {
+        try {
+            return JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+        } catch (e) {
+            return {};
+        }
+    }
+    function saveProgress(p) {
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(p)); } catch (e) {}
+    }
+
+    // ====== 工具函数 ======
+    function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function imageHTML(w, cls) {
+        if (w.image) {
+            return '<img src="' + w.image + '" alt="' + w.word + '">';
+        }
+        return w.emoji;
+    }
+
+    // ====== B版：把所有单词拍平成单词关，每关1个词，保留主题信息 ======
+    const WORDS = [];
+    LEVELS.forEach(theme => {
+        theme.words.forEach(w => {
+            WORDS.push(Object.assign({}, w, {
+                themeId: theme.id,
+                themeName: theme.name,
+                themeEmoji: theme.emoji,
+                uid: theme.id + '_' + w.word   // 唯一存档标识
+            }));
+        });
+    });
+
+    // 构造拼读朗读序列：循环 REPEAT 遍【逐字母拼 + 读整词】，再读例句 EX_TIMES 遍
+    const SPELL_REPEAT = 10;  // 单词拼读遍数
+    const EX_TIMES = 5;       // 例句朗读遍数
+
+    function buildSpellSequence(w) {
+        const seq = [];
+        // 显示用小写，朗读用小写
+        const letters = w.word.replace(/[^a-zA-Z]/g, '').split('');
+        for (let r = 0; r < SPELL_REPEAT; r++) {
+            letters.forEach(ch => seq.push({ text: ch.toLowerCase(), type: 'letter' }));
+            seq.push({ text: w.word.toLowerCase(), type: 'word' });
+        }
+        for (let e = 0; e < EX_TIMES; e++) {
+            seq.push({ text: w.exEn, type: 'ex' });
+        }
+        return seq;
+    }
+
+
+    // ====== 主程序 ======
+    const app = {
+        progress: loadProgress(),
+        currentIndex: 0,      // 当前单词在 WORDS 里的下标
+        currentWord: null,    // 当前学习的单词
+        quizQueue: [],        // 测试题目队列
+        quizIndex: 0,
+        quizCorrect: 0,
+        wrongCount: 0,        // 本轮答错题数
+        isReviewMode: false,
+
+        showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        },
+
+        isLevelUnlocked(index) {
+            if (index === 0) return true;
+            return !!this.progress[WORDS[index - 1].uid];
+        },
+
+        showMap() {
+            stopSpeak();
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+            let lastTheme = null;
+            WORDS.forEach((w, i) => {
+                // 主题分隔标题
+                if (w.themeId !== lastTheme) {
+                    lastTheme = w.themeId;
+                    const header = document.createElement('div');
+                    header.className = 'theme-header';
+                    header.innerHTML = w.themeEmoji + ' ' + w.themeName;
+                    grid.appendChild(header);
+                }
+                const unlocked = this.isLevelUnlocked(i);
+                const done = !!this.progress[w.uid];
+                const card = document.createElement('div');
+                card.className = 'level-card' + (unlocked ? '' : ' locked') + (done ? ' completed' : '');
+                card.innerHTML =
+                    (unlocked ? '' : '<div class="level-lock">🔒</div>') +
+                    '<div class="level-emoji">' + imageHTML(w) + '</div>' +
+                    '<div class="level-name">' + w.word.toLowerCase() + '</div>' +
+                    '<div class="level-stars">' + (done ? '⭐' : '') + '</div>';
+                if (unlocked) {
+                    card.onclick = () => this.startLevel(i);
+                }
+                grid.appendChild(card);
+            });
+            this.showPage('mapPage');
+        },
+
+
+        // ====== 学习环节（B版：每关1词，自动拼读）======
+        startLevel(index) {
+            this.currentIndex = index;
+            this.currentWord = WORDS[index];
+            this.isReviewMode = false;
+            this.renderLearn();
+            this.showPage('learnPage');
+        },
+
+        // 重学当前词
+        startReview() {
+            this.isReviewMode = true;
+            this.renderLearn();
+            this.showPage('learnPage');
+        },
+
+        renderLearn() {
+            const w = this.currentWord;
+            document.getElementById('learnProgress').textContent =
+                w.themeEmoji + ' ' + w.themeName + '　第 ' + (this.currentIndex + 1) + ' / ' + WORDS.length + ' 词';
+
+            // 字母分解显示
+            const letters = w.word.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
+            const spellHTML = letters.map((ch, idx) =>
+                '<span class="spell-letter" id="sl' + idx + '">' + ch + '</span>'
+            ).join('<span class="spell-dash">-</span>');
+
+            document.getElementById('learnCard').innerHTML =
+                '<div class="learn-image" onclick="app.sayWord()">' + imageHTML(w) + '</div>' +
+                '<div class="spell-row">' + spellHTML + '</div>' +
+                '<div class="learn-word" onclick="app.sayWord()">' + w.word.toLowerCase() + '</div>' +
+                '<div class="learn-phonetic">' + w.phonetic + '</div>' +
+                '<div class="learn-chinese">' + w.cn + '</div>' +
+                '<div class="read-status" id="readStatus">🔊 正在自动拼读…</div>' +
+                '<button class="btn-sound" onclick="app.replaySpell()">🔁 再拼读一遍</button>' +
+                '<div class="learn-example">' +
+                    '<div class="learn-example-en" onclick="app.sayExample()">💬 ' + w.exEn + ' 🔊</div>' +
+                    '<div class="learn-example-cn">' + w.exCn + '</div>' +
+                '</div>';
+
+            this.playSpell();
+
+            // 学习页底部按钮：只保留开始测试
+            document.getElementById('btnPrev').style.display = 'none';
+            document.getElementById('btnNext').style.display = 'none';
+            document.getElementById('btnStartQuiz').style.display = '';
+        },
+
+        // 自动拼读：循环10遍(逐字母+整词) + 例句5遍，带界面高亮与计数
+        playSpell() {
+            const w = this.currentWord;
+            const seq = buildSpellSequence(w);
+            const totalSpell = SPELL_REPEAT;
+            const self = this;
+            speakSequence(seq, function (idx, item) {
+                const statusEl = document.getElementById('readStatus');
+                if (!statusEl) return;
+                if (idx === -1) {
+                    statusEl.textContent = '✅ 拼读完成！点下面【开始测试】';
+                    document.querySelectorAll('.spell-letter').forEach(s => s.classList.remove('on'));
+                    return;
+                }
+                // 计算当前是第几遍拼读
+                const lettersLen = w.word.replace(/[^a-zA-Z]/g, '').length;
+                const perRound = lettersLen + 1; // 字母数 + 整词
+                if (item.type === 'letter' || item.type === 'word') {
+                    const round = Math.floor(idx / perRound) + 1;
+                    statusEl.textContent = '🔊 拼读中… 第 ' + Math.min(round, totalSpell) + ' / ' + totalSpell + ' 遍';
+                    // 高亮当前字母
+                    document.querySelectorAll('.spell-letter').forEach(s => s.classList.remove('on'));
+                    if (item.type === 'letter') {
+                        const posInRound = idx % perRound;
+                        const el = document.getElementById('sl' + posInRound);
+                        if (el) el.classList.add('on');
+                    }
+                } else if (item.type === 'ex') {
+                    statusEl.textContent = '💬 朗读例句… (' + EX_TIMES + ' 遍)';
+                    document.querySelectorAll('.spell-letter').forEach(s => s.classList.remove('on'));
+                }
+            });
+        },
+
+        replaySpell() {
+            this.playSpell();
+        },
+
+        sayWord() {
+            speak(this.currentWord.word.toLowerCase());
+        },
+        sayExample() {
+            speak(this.currentWord.exEn);
+        },
+
+        // ====== 测试环节（B版：每关1词测2题，2题全对过关）======
+        startQuiz() {
+            const w = this.currentWord;
+            // 固定出2题：看图选词 + 看中文选词
+            this.quizQueue = [
+                { word: w, type: 'pic2word' },
+                { word: w, type: 'cn2word' }
+            ];
+            this.quizIndex = 0;
+            this.quizCorrect = 0;
+            this.wrongCount = 0;
+            this.renderQuiz();
+            this.showPage('quizPage');
+        },
+
+        // 生成4个选项，干扰项从同主题的其他词里选
+        buildOptions(correctWord) {
+            const sameTheme = WORDS.filter(w => w.themeId === correctWord.themeId && w.word !== correctWord.word);
+            let distractors = shuffle(sameTheme).slice(0, 3);
+            // 如果同主题词不够3个，从其他主题补足
+            if (distractors.length < 3) {
+                const others = WORDS.filter(w => w.word !== correctWord.word);
+                const more = shuffle(others).slice(0, 3 - distractors.length);
+                distractors = distractors.concat(more);
+            }
+            return shuffle([correctWord, ...distractors]);
+        },
+
+        renderQuiz() {
+            const q = this.quizQueue[this.quizIndex];
+            const w = q.word;
+            document.getElementById('quizProgress').textContent = w.themeName + '：' + w.word.toLowerCase() + ' 测试';
+            document.getElementById('quizStatus').textContent =
+                '第 ' + (this.quizIndex + 1) + ' / ' + this.quizQueue.length + ' 题　✅ ' + this.quizCorrect;
+
+            const qDiv = document.getElementById('quizQuestion');
+            if (q.type === 'pic2word') {
+                qDiv.innerHTML =
+                    '<div class="quiz-prompt">这是什么？选出正确的单词</div>' +
+                    '<div class="quiz-image" onclick="app.sayCurrentQuiz()">' + imageHTML(w) + '</div>';
+            } else {
+                qDiv.innerHTML =
+                    '<div class="quiz-prompt">"' + w.cn + '" 用英语怎么说？</div>' +
+                    '<div class="quiz-chinese">' + w.cn + '</div>';
+            }
+
+            const options = this.buildOptions(w);
+            const optDiv = document.getElementById('quizOptions');
+            optDiv.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'quiz-option';
+                btn.textContent = opt.word.toLowerCase();
+                btn.onclick = () => this.answer(opt, w, btn);
+                optDiv.appendChild(btn);
+            });
+        },
+
+        sayCurrentQuiz() {
+            speak(this.quizQueue[this.quizIndex].word.word.toLowerCase());
+        },
+
+        answer(chosen, correct, btnEl) {
+            const allBtns = document.querySelectorAll('.quiz-option');
+            allBtns.forEach(b => b.classList.add('disabled'));
+
+            const isRight = chosen.word.toLowerCase() === correct.word.toLowerCase();
+            speak(correct.word.toLowerCase());
+
+            if (isRight) {
+                btnEl.classList.add('correct');
+                this.quizCorrect++;
+                this.toast('🎉 答对啦！');
+            } else {
+                btnEl.classList.add('wrong');
+                allBtns.forEach(b => {
+                    if (b.textContent === correct.word.toLowerCase()) b.classList.add('correct');
+                });
+                this.wrongCount++;
+                this.toast('💪 再记一下哦');
+            }
+
+            setTimeout(() => {
+                this.quizIndex++;
+                if (this.quizIndex < this.quizQueue.length) {
+                    this.renderQuiz();
+                } else {
+                    this.finishQuiz();
+                }
+            }, 1300);
+        },
+
+
+        // ====== 结算（B版：2题全对过关，错1题重学）======
+        finishQuiz() {
+            stopSpeak();
+            const total = this.quizQueue.length;
+            const passed = this.wrongCount === 0; // 2题全对才过关
+
+            const emoji = document.getElementById('resultEmoji');
+            const title = document.getElementById('resultTitle');
+            const score = document.getElementById('resultScore');
+            const btn1 = document.getElementById('resultBtn1');
+            const btn2 = document.getElementById('resultBtn2');
+
+            score.textContent = '答对 ' + this.quizCorrect + ' / ' + total + ' 题';
+
+            if (passed) {
+                // 记录通关
+                this.progress[this.currentWord.uid] = true;
+                saveProgress(this.progress);
+                emoji.textContent = '🏆';
+                title.textContent = 'Eason 太棒了，过关！';
+                this.confetti();
+                speak('Great job Eason!');
+
+                btn1.textContent = '🗺️ 返回地图';
+                btn1.onclick = () => this.showMap();
+                if (this.currentIndex < WORDS.length - 1) {
+                    btn2.style.display = '';
+                    btn2.textContent = '➡️ 下一个单词';
+                    btn2.onclick = () => this.startLevel(this.currentIndex + 1);
+                } else {
+                    btn2.style.display = 'none';
+                }
+            } else {
+                emoji.textContent = '📚';
+                title.textContent = 'Eason 加油，再来一次！';
+                emoji.style.animation = 'none';
+
+                btn1.textContent = '🔁 重新学习';
+                btn1.onclick = () => this.startReview();
+                btn2.style.display = '';
+                btn2.textContent = '🗺️ 返回地图';
+                btn2.onclick = () => this.showMap();
+            }
+            this.showPage('resultPage');
+        },
+
+
+        // ====== 反馈动画 ======
+        toast(msg) {
+            const t = document.getElementById('feedbackToast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1000);
+        },
+
+        confetti() {
+            const colors = ['#ff6b6b', '#ffd93d', '#6bcB77', '#4d96ff', '#ff6bcb', '#c56bff'];
+            for (let i = 0; i < 60; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+                c.style.animationDelay = (Math.random() * 0.5) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 3500);
+            }
+        },
+    };
+
+    // ====== iOS 触屏语音解锁 ======
+    let audioUnlocked = false;
+    function unlockAudio() {
+        if (audioUnlocked || !('speechSynthesis' in window)) return;
+        // 播放一个静音 utterance 解锁语音
+        const u = new SpeechSynthesisUtterance(' ');
+        u.volume = 0;
+        window.speechSynthesis.speak(u);
+        audioUnlocked = true;
+    }
+
+    // 暖机 + 监听首次触摸解锁
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        // iOS 需要在用户手势回调里首次调用 speak() 才能启用
+        document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+        document.addEventListener('click', unlockAudio, { once: true, passive: true });
+    }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
