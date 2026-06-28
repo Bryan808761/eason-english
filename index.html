@@ -393,6 +393,7 @@
         .learn-example-cn {
             color: #888;
             font-size: 0.9em;
+            cursor: pointer;
         }
 
         .nav-buttons {
@@ -957,6 +958,21 @@
                 { word: 'play', phonetic: '/pleɪ/', cn: '玩', emoji: '🎮', exEn: 'Let us play together.', exCn: '我们一起玩吧。' },
             ]
         },
+        {
+            id: 'weather',
+            name: '天气',
+            emoji: '🌤️',
+            words: [
+                { word: 'sun', phonetic: '/sʌn/', cn: '太阳', emoji: '☀️', exEn: 'The sun is bright.', exCn: '太阳很亮。' },
+                { word: 'rain', phonetic: '/reɪn/', cn: '雨', emoji: '🌧️', exEn: 'I like the rain.', exCn: '我喜欢下雨。' },
+                { word: 'cloud', phonetic: '/klaʊd/', cn: '云', emoji: '☁️', exEn: 'I see a white cloud.', exCn: '我看到一朵白云。' },
+                { word: 'wind', phonetic: '/wɪnd/', cn: '风', emoji: '💨', exEn: 'The wind is strong.', exCn: '风很大。' },
+                { word: 'snow', phonetic: '/snoʊ/', cn: '雪', emoji: '❄️', exEn: 'It is snowing!', exCn: '下雪了！' },
+                { word: 'hot', phonetic: '/hɑːt/', cn: '热', emoji: '🔥', exEn: 'Today is very hot.', exCn: '今天很热。' },
+                { word: 'cold', phonetic: '/koʊld/', cn: '冷', emoji: '🧊', exEn: 'It is cold outside.', exCn: '外面很冷。' },
+                { word: 'rainbow', phonetic: '/ˈreɪnboʊ/', cn: '彩虹', emoji: '🌈', exEn: 'I see a rainbow!', exCn: '我看到彩虹了！' },
+            ]
+        },
     ];
 
     // ====== 发音 ======
@@ -967,12 +983,12 @@
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
-    function speak(text, lang) {
+    function speak(text, lang, rate) {
         stopSpeak();
         if (!('speechSynthesis' in window)) return;
         const u = new SpeechSynthesisUtterance(text);
         u.lang = lang || 'en-US';
-        u.rate = 0.8;
+        u.rate = rate !== undefined ? rate : 0.6;  // 默认慢速0.6
         window.speechSynthesis.speak(u);
     }
 
@@ -991,9 +1007,9 @@
             if (onProgress) onProgress(i, obj);
             i++;
             const u = new SpeechSynthesisUtterance(obj.text);
-            u.lang = 'en-US';
-            // 字母拼读慢一点更清晰；例句正常
-            u.rate = obj.type === 'letter' ? 0.7 : (obj.type === 'ex' ? 0.85 : 0.8);
+            u.lang = obj.lang || 'en-US';
+            // 字母拼读极慢（0.5），整词慢速（0.6），例句超慢（0.35），适合非母语幼儿
+            u.rate = obj.type === 'letter' ? 0.5 : (obj.type === 'ex' ? 0.35 : 0.6);
             // 句间停顿：字母间短，整词后中等，例句后长
             const gap = obj.type === 'letter' ? 250 : (obj.type === 'word' ? 500 : 700);
             u.onend = function () {
@@ -1051,7 +1067,7 @@
     });
 
     // 构造拼读朗读序列：循环 REPEAT 遍【逐字母拼 + 读整词】，再读例句 EX_TIMES 遍
-    const SPELL_REPEAT = 10;  // 单词拼读遍数
+    const SPELL_REPEAT = 5;   // 单词拼读遍数（与B版对齐）
     const EX_TIMES = 5;       // 例句朗读遍数
 
     function buildSpellSequence(w) {
@@ -1062,8 +1078,10 @@
             letters.forEach(ch => seq.push({ text: ch.toLowerCase(), type: 'letter' }));
             seq.push({ text: w.word.toLowerCase(), type: 'word' });
         }
+        // 例句：英文 + 中文，各读5遍（与B版对齐）
         for (let e = 0; e < EX_TIMES; e++) {
-            seq.push({ text: w.exEn, type: 'ex' });
+            seq.push({ text: w.exEn, type: 'ex', lang: 'en-US' });
+            seq.push({ text: w.exCn, type: 'ex', lang: 'zh-CN' });
         }
         return seq;
     }
@@ -1159,7 +1177,7 @@
                 '<button class="btn-sound" onclick="app.replaySpell()">🔁 再拼读一遍</button>' +
                 '<div class="learn-example">' +
                     '<div class="learn-example-en" onclick="app.sayExample()">💬 ' + w.exEn + ' 🔊</div>' +
-                    '<div class="learn-example-cn">' + w.exCn + '</div>' +
+                    '<div class="learn-example-cn" onclick="app.sayExample()">' + w.exCn + ' 🔊</div>' +
                 '</div>';
 
             this.playSpell();
@@ -1170,7 +1188,7 @@
             document.getElementById('btnStartQuiz').style.display = '';
         },
 
-        // 自动拼读：循环10遍(逐字母+整词) + 例句5遍，带界面高亮与计数
+        // 自动拼读：循环5遍(逐字母+整词) + 例句5遍（英+中），带界面高亮与计数
         playSpell() {
             const w = this.currentWord;
             const seq = buildSpellSequence(w);
@@ -1198,7 +1216,7 @@
                         if (el) el.classList.add('on');
                     }
                 } else if (item.type === 'ex') {
-                    statusEl.textContent = '💬 朗读例句… (' + EX_TIMES + ' 遍)';
+                    statusEl.textContent = '💬 朗读例句中英文… (' + EX_TIMES + ' 遍)';
                     document.querySelectorAll('.spell-letter').forEach(s => s.classList.remove('on'));
                 }
             });
@@ -1209,10 +1227,25 @@
         },
 
         sayWord() {
-            speak(this.currentWord.word.toLowerCase());
+            speak(this.currentWord.word.toLowerCase(), 'en-US', 0.6);
         },
         sayExample() {
-            speak(this.currentWord.exEn);
+            // 点击例句：先读英文（超慢速0.35），再读中文（与B版对齐）
+            const w = this.currentWord;
+            stopSpeak();
+            if (!('speechSynthesis' in window)) return;
+
+            const uEn = new SpeechSynthesisUtterance(w.exEn);
+            uEn.lang = 'en-US';
+            uEn.rate = 0.35;
+
+            uEn.onend = function() {
+                const uCn = new SpeechSynthesisUtterance(w.exCn);
+                uCn.lang = 'zh-CN';
+                uCn.rate = 0.8;
+                window.speechSynthesis.speak(uCn);
+            };
+            window.speechSynthesis.speak(uEn);
         },
 
         // ====== 测试环节（B版：每关1词测2题，2题全对过关）======
